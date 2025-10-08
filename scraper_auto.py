@@ -12,11 +12,11 @@ from datetime import datetime
 from selenium.webdriver.chrome.options import Options
 
 def create_driver():
-    chrome_path = shutil.which("google-chrome") or shutil.which("chromium-browser")
+    chrome_path = shutil.which("google-chrome") or shutil.which("chromium") or shutil.which("chromium-browser")
     driver_path = shutil.which("chromedriver")
 
     if not chrome_path or not driver_path:
-        raise RuntimeError("Chrome or Chromedriver not found in system path.")
+        raise RuntimeError(f"Chrome or Chromedriver not found. Found: chrome={chrome_path}, driver={driver_path}")
 
     options = Options()
     options.binary_location = chrome_path
@@ -24,7 +24,6 @@ def create_driver():
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
-    options.add_argument("--disable-software-rasterizer")
     options.add_argument("--window-size=1920,1080")
 
     service = Service(driver_path)
