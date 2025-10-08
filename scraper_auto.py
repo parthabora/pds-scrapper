@@ -1,5 +1,6 @@
 import os, time, argparse
 import pandas as pd
+import shutil
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -8,6 +9,26 @@ from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.common.exceptions import TimeoutException
 from html2image import Html2Image
 from datetime import datetime
+from selenium.webdriver.chrome.options import Options
+
+def create_driver():
+    chrome_path = shutil.which("google-chrome") or shutil.which("chromium-browser")
+    driver_path = shutil.which("chromedriver")
+
+    if not chrome_path or not driver_path:
+        raise RuntimeError("Chrome or Chromedriver not found in system path.")
+
+    options = Options()
+    options.binary_location = chrome_path
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--disable-software-rasterizer")
+    options.add_argument("--window-size=1920,1080")
+
+    service = Service(driver_path)
+    return webdriver.Chrome(service=service, options=options)
 
 # -----------------------------
 # Configuration
@@ -28,8 +49,7 @@ options.add_argument("--disable-gpu")
 # Scraper
 # -----------------------------
 def scrape_data():
-    service = Service("/usr/bin/chromedriver")
-    driver = webdriver.Chrome(service=service, options=options)
+    driver = create_driver()
     wait = WebDriverWait(driver, 10)
     try:
         driver.get("https://epos.assam.gov.in/FPS_Trans_Abstract.jsp")
@@ -86,14 +106,21 @@ def save_html_as_image(html_content):
 # CLI Entry
 # -----------------------------
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--csv-only", action="store_true")
-    parser.add_argument("--full", action="store_true")
-    args = parser.parse_args()
+    try:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--csv-only", action="store_true")
+        parser.add_argument("--full", action="store_true")
+        args = parser.parse_args()
 
-    data = scrape_data()
-    if args.csv_only:
-        print("CSV generation complete.")
-    elif args.full:
-        html = generate_html_report(data)
-        save_html_as_image(html)
+        data = scrape_data()
+        if args.csv_only:
+            print("CSV generation complete.")
+        elif args.full:
+            html = generate_html_report(data)
+            save_html_as_image(html)
+
+    except Exception as e:
+        import traceback
+        print("❌ Exception occurred:", e)
+        traceback.print_exc()
+        exit(1)
