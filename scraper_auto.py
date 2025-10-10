@@ -12,7 +12,7 @@ from datetime import datetime
 from selenium.webdriver.chrome.options import Options
 
 def create_driver():
-    chrome_path = shutil.which("chromium") or shutil.which("chromium-browser")
+    chrome_path = shutil.which("google-chrome") or shutil.which("chrome")
     driver_path = shutil.which("chromedriver")
 
     if not chrome_path or not driver_path:
@@ -28,6 +28,7 @@ def create_driver():
 
     service = Service(driver_path)
     return webdriver.Chrome(service=service, options=options)
+
 # -----------------------------
 # Configuration
 # -----------------------------
