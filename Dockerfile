@@ -1,24 +1,27 @@
-FROM ghcr.io/puppeteer/puppeteer:23.11.1
+FROM mcr.microsoft.com/playwright:v1.48.0-jammy
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files first (for better caching)
+# Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install --production
+RUN npm ci --only=production
 
-# Copy all application files
+# Copy application files
 COPY . .
 
-# Set environment variables
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
-ENV NODE_ENV=production
+# Playwright browsers are already installed in the base image
+# But we ensure chromium is available
+RUN npx playwright install chromium --with-deps
 
-# Expose the port your app runs on
-EXPOSE 3000
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=10000
+
+# Expose port (Render uses PORT env variable)
+EXPOSE 10000
 
 # Start the application
 CMD ["node", "app.js"]

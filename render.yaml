@@ -2,11 +2,9 @@ services:
   - type: web
     name: assam-pds-scraper
     runtime: docker
-    plan: free
+    plan: starter
     dockerfilePath: ./Dockerfile
     dockerContext: .
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3000

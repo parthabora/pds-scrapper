@@ -1,8 +1,8 @@
-import puppeteer from "puppeteer";
+import { chromium } from "playwright";
 import fs from "fs";
 import { createObjectCsvWriter } from "csv-writer";
 
-// Change these as per your configuration
+// Configuration
 const DISTRICT_VALUE = "312";
 const FPS_VALUE = "131200100458";
 const MONTH_NAME = "October";
@@ -14,51 +14,47 @@ export async function scrapeData() {
   try {
     console.log("🚀 Launching browser...");
     
-    browser = await puppeteer.launch({
+    browser = await chromium.launch({
       headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
       args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--no-first-run",
-        "--no-zygote",
-        "--disable-gpu"
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage'
       ]
     });
 
     console.log("✅ Browser launched successfully");
 
     const page = await browser.newPage();
-    page.setDefaultTimeout(30000);
     
     console.log("📡 Navigating to Assam ePos website...");
     await page.goto("https://epos.assam.gov.in/FPS_Trans_Abstract.jsp", {
-      waitUntil: "networkidle2",
+      waitUntil: "networkidle",
       timeout: 30000
     });
 
     console.log("🔍 Selecting district...");
-    await page.waitForSelector("#dist_code", { timeout: 10000 });
-    await page.select("#dist_code", DISTRICT_VALUE);
+    await page.waitForSelector("#dist_code");
+    await page.selectOption("#dist_code", DISTRICT_VALUE);
+    
+    // Trigger change event
     await page.evaluate(() => {
       const el = document.querySelector("#dist_code");
       el.dispatchEvent(new Event("change"));
     });
     
-    // Wait for district change to process
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Wait for FPS dropdown to populate
+    await page.waitForTimeout(2000);
 
     console.log("📋 Selecting FPS ID, Month, and Year...");
-    await page.select("#fps_id", FPS_VALUE);
-    await page.select("#month", MONTH_NAME);
-    await page.select("#year", YEAR);
+    await page.selectOption("#fps_id", FPS_VALUE);
+    await page.selectOption("#month", MONTH_NAME);
+    await page.selectOption("#year", YEAR);
 
     console.log("🔘 Clicking Details button...");
     await page.click("button[onclick='detailsR();']");
     
-    // Wait for the table to load
+    // Wait for the report table to load
     await page.waitForSelector("#Report > tbody > tr", { timeout: 15000 });
 
     console.log("📊 Extracting data from second column...");
@@ -70,7 +66,7 @@ export async function scrapeData() {
 
     // Ensure output directory exists
     if (!fs.existsSync("output")) {
-      fs.mkdirSync("output");
+      fs.mkdirSync("output", { recursive: true });
     }
 
     // Write to CSV
