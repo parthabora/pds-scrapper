@@ -12,7 +12,9 @@ from datetime import datetime
 from selenium.webdriver.chrome.options import Options
 
 def create_driver():
-    chrome_path = shutil.which("google-chrome") or shutil.which("chromium") or shutil.which("chromium-browser")
+    # chrome_path = shutil.which("google-chrome") or shutil.which("chromium") or shutil.which("chromium-browser")
+    # driver_path = shutil.which("chromedriver")
+    chrome_path = shutil.which("chromium") or shutil.which("chromium-browser")
     driver_path = shutil.which("chromedriver")
 
     if not chrome_path or not driver_path:
@@ -48,28 +50,33 @@ options.add_argument("--disable-gpu")
 # Scraper
 # -----------------------------
 def scrape_data():
-    driver = create_driver()
-    wait = WebDriverWait(driver, 10)
-    try:
-        driver.get("https://epos.assam.gov.in/FPS_Trans_Abstract.jsp")
-        Select(wait.until(EC.presence_of_element_located((By.ID, "dist_code")))).select_by_value(DISTRICT_VALUE)
-        time.sleep(1)
-        district_element = driver.find_element(By.ID, "dist_code")
-        driver.execute_script("arguments[0].dispatchEvent(new Event('change'))", district_element)
-        time.sleep(2)
-        Select(wait.until(EC.presence_of_element_located((By.ID, "fps_id")))).select_by_value(FPS_VALUE)
-        Select(wait.until(EC.presence_of_element_located((By.ID, "month")))).select_by_visible_text(MONTH_NAME)
-        Select(wait.until(EC.presence_of_element_located((By.ID, "year")))).select_by_visible_text(YEAR)
-        wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[onclick='detailsR();']"))).click()
-        WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#Report > tbody > tr")))
-        # Extract second column
-        second_col = driver.find_elements(By.CSS_SELECTOR, "#Report > tbody > tr > td:nth-child(2)")
-        data = [e.text.strip() for e in second_col if e.text.strip()]
-        pd.DataFrame(data, columns=["SRC No"]).to_csv("fps_column2_all_rows.csv", index=False)
-        print(f"✅ Extracted {len(data)} rows")
-        return data
-    finally:
-        driver.quit()
+    print("Skipping actual scrape for test startup")
+    pd.DataFrame(["TEST1","TEST2"], columns=["SRC No"]).to_csv("fps_column2_all_rows.csv", index=False)
+    return ["TEST1","TEST2"]
+
+# def scrape_data():
+#     driver = create_driver()
+#     wait = WebDriverWait(driver, 10)
+#     try:
+#         driver.get("https://epos.assam.gov.in/FPS_Trans_Abstract.jsp")
+#         Select(wait.until(EC.presence_of_element_located((By.ID, "dist_code")))).select_by_value(DISTRICT_VALUE)
+#         time.sleep(1)
+#         district_element = driver.find_element(By.ID, "dist_code")
+#         driver.execute_script("arguments[0].dispatchEvent(new Event('change'))", district_element)
+#         time.sleep(2)
+#         Select(wait.until(EC.presence_of_element_located((By.ID, "fps_id")))).select_by_value(FPS_VALUE)
+#         Select(wait.until(EC.presence_of_element_located((By.ID, "month")))).select_by_visible_text(MONTH_NAME)
+#         Select(wait.until(EC.presence_of_element_located((By.ID, "year")))).select_by_visible_text(YEAR)
+#         wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[onclick='detailsR();']"))).click()
+#         WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#Report > tbody > tr")))
+#         # Extract second column
+#         second_col = driver.find_elements(By.CSS_SELECTOR, "#Report > tbody > tr > td:nth-child(2)")
+#         data = [e.text.strip() for e in second_col if e.text.strip()]
+#         pd.DataFrame(data, columns=["SRC No"]).to_csv("fps_column2_all_rows.csv", index=False)
+#         print(f"✅ Extracted {len(data)} rows")
+#         return data
+#     finally:
+#         driver.quit()
 
 # -----------------------------
 # Simple Report Generation (from auto.py)
