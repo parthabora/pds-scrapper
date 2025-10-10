@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: pds-scraper
-    env: node
-    plan: free
-    buildCommand: |
-      npm install
-      npx puppeteer browsers install chrome
-    startCommand: npm start
