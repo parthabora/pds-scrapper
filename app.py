@@ -41,5 +41,16 @@ def run_full_report():
     except Exception as e:
         return jsonify({"error": f"Unexpected error: {e}"}), 500
 
+@app.route("/debug")
+def debug_env():
+    import shutil, os
+    return {
+        "google-chrome": shutil.which("google-chrome"),
+        "chromedriver": shutil.which("chromedriver"),
+        "opt_chrome_exists": os.path.exists("/opt/chrome/chrome"),
+        "opt_driver_exists": os.path.exists("/opt/chromedriver/chromedriver")
+    }
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)

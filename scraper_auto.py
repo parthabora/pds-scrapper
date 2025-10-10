@@ -12,8 +12,8 @@ from datetime import datetime
 from selenium.webdriver.chrome.options import Options
 
 def create_driver():
-    chrome_path = shutil.which("google-chrome") or shutil.which("chrome")
-    driver_path = shutil.which("chromedriver")
+    chrome_path = shutil.which("google-chrome") or "/opt/chrome/chrome"
+    driver_path = shutil.which("chromedriver") or "/opt/chromedriver/chromedriver"
 
     if not chrome_path or not driver_path:
         raise RuntimeError(f"Chrome or Chromedriver not found. chrome={chrome_path}, driver={driver_path}")

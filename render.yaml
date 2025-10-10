@@ -6,22 +6,20 @@ services:
     buildCommand: |
       apt-get update && \
       apt-get install -y wget unzip gnupg ca-certificates && \
-      # ---- Install Google Chrome stable ----
-      wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-linux-keyring.gpg && \
-      echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-      apt-get update && \
-      apt-get install -y google-chrome-stable && \
-      # ---- Match Chromedriver version to installed Chrome ----
-      CHROME_VERSION=$(google-chrome --version | awk '{print $3}') && \
-      CHROME_MAJOR=$(echo $CHROME_VERSION | cut -d. -f1) && \
-      wget -q "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/$CHROME_VERSION/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip || \
-      wget -q "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip || \
-      wget -q "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_MAJOR.0.0.0/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip && \
-      unzip -o /tmp/chromedriver.zip -d /usr/local/bin/ && \
-      mv /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
-      chmod +x /usr/local/bin/chromedriver && \
-      rm -rf /usr/local/bin/chromedriver-linux64 /tmp/chromedriver.zip && \
-      # ---- Python deps ----
+      # ---- Fetch Chrome for Testing (latest stable) ----
+      CHROME_VERSION=$(wget -qO- https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE) && \
+      echo "Installing Chrome version $CHROME_VERSION" && \
+      wget -q "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chrome-linux64.zip" -O /tmp/chrome.zip && \
+      wget -q "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip && \
+      unzip -o /tmp/chrome.zip -d /opt && \
+      unzip -o /tmp/chromedriver.zip -d /opt && \
+      mv /opt/chrome-linux64 /opt/chrome && \
+      mv /opt/chromedriver-linux64 /opt/chromedriver && \
+      ln -sf /opt/chrome/chrome /usr/local/bin/google-chrome && \
+      ln -sf /opt/chromedriver/chromedriver /usr/local/bin/chromedriver && \
+      chmod +x /usr/local/bin/google-chrome /usr/local/bin/chromedriver && \
+      rm -rf /tmp/chrome.zip /tmp/chromedriver.zip && \
+      # ---- Install Python deps ----
       pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
