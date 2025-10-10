@@ -1,27 +1,10 @@
 services:
   - type: web
-    name: pds-scrapper
-    env: python
+    name: pds-scraper
+    env: node
     plan: free
-    buildCommand: |
-      apt-get update && \
-      apt-get install -y wget unzip gnupg ca-certificates && \
-      # ---- Fetch Chrome for Testing (latest stable) ----
-      CHROME_VERSION=$(wget -qO- https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE) && \
-      echo "Installing Chrome version $CHROME_VERSION" && \
-      wget -q "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chrome-linux64.zip" -O /tmp/chrome.zip && \
-      wget -q "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip" -O /tmp/chromedriver.zip && \
-      unzip -o /tmp/chrome.zip -d /opt && \
-      unzip -o /tmp/chromedriver.zip -d /opt && \
-      mv /opt/chrome-linux64 /opt/chrome && \
-      mv /opt/chromedriver-linux64 /opt/chromedriver && \
-      ln -sf /opt/chrome/chrome /usr/local/bin/google-chrome && \
-      ln -sf /opt/chromedriver/chromedriver /usr/local/bin/chromedriver && \
-      chmod +x /usr/local/bin/google-chrome /usr/local/bin/chromedriver && \
-      rm -rf /tmp/chrome.zip /tmp/chromedriver.zip && \
-      # ---- Install Python deps ----
-      pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
-      - key: PYTHONUNBUFFERED
-        value: "1"
+      - key: NODE_ENV
+        value: "production"
